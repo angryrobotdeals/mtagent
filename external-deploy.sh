@@ -14,8 +14,14 @@ scp -i "$APP_SERVER_SSH_KEY" ./.env.production "$APP_SERVER_USER":/repos/mtagent
 ssh -i "$APP_SERVER_SSH_KEY" "$APP_SERVER_USER" << "EOF"
 
 # Move to the directory with the repository
-cd /repos/mtagent
+cd /repos/mtagent || exit
 pwd
+
+# Стягиваем последние изменения из репозитория
+git reset --hard
+git checkout main
+git reset --hard
+git pull
 
 # Stop containers
 docker compose -p mtagent -f docker-compose.yml down --remove-orphans
@@ -26,12 +32,6 @@ docker image rm mtagent
 # REMOVE ALL UNUSED DATA
 docker image prune -f -a
 docker volume prune -f
-
-# Стягиваем последние изменения из репозитория
-git reset --hard
-git checkout main
-git reset --hard
-git pull
 
 # Поднимаем контейнеры с последними изменениями
 docker compose -p mtagent -f docker-compose.yml build
