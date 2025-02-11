@@ -12,7 +12,6 @@ COPY ./package*.json .
 COPY ./.eslintrc.js .
 COPY ./tsconfig*.json .
 COPY ./prisma ./prisma/
-COPY ./data ./data/
 COPY ./src ./src/
 
 RUN npm cache verify
