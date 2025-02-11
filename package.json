@@ -30,7 +30,6 @@
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "mongoose": "^8.10.0",
-    "pm2": "^5.4.3",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },

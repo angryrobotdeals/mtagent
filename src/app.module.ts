@@ -74,7 +74,6 @@ export class AppModule implements OnModuleInit {
         },
         {
           secret: process.env.JWT_SECRET || 'defaultSecret',
-          algorithm: 'HS256',
         },
       );
       await this.userModel.create({

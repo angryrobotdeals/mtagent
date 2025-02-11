@@ -13,7 +13,7 @@ export class AppService {
     private jwtService: JwtService,
   ) {}
 
-  getHello(): string {
+  hello(): string {
     return `Signal server works: ${process.uptime()}`;
   }
 
@@ -23,12 +23,8 @@ export class AppService {
       throw new UnauthorizedException('User already exists');
     }
     const token = this.jwtService.sign(
-      {
-        username,
-      },
-      {
-        secret: process.env.JWT_SECRET || 'defaultSecret',
-      },
+      { username },
+      { secret: process.env.JWT_SECRET || 'defaultSecret' },
     );
     await this.userModel.updateOne({ username }, { token });
     return token;
@@ -40,12 +36,8 @@ export class AppService {
       throw new UnauthorizedException('User does not exist');
     }
     const token = this.jwtService.sign(
-      {
-        username,
-      },
-      {
-        secret: process.env.JWT_SECRET || 'defaultSecret',
-      },
+      { username },
+      { secret: process.env.JWT_SECRET || 'defaultSecret' },
     );
     await this.userModel.updateOne({ username }, { token });
     return token;
@@ -57,12 +49,8 @@ export class AppService {
       throw new UnauthorizedException('Invalid credentials');
     }
     const token = this.jwtService.sign(
-      {
-        username,
-      },
-      {
-        secret: process.env.JWT_SECRET || 'defaultSecret',
-      },
+      { username },
+      { secret: process.env.JWT_SECRET || 'defaultSecret' },
     );
     await this.userModel.updateOne({ username }, { token });
     return token;

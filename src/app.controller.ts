@@ -19,7 +19,7 @@ export class AppController {
 
   @Get('/')
   getHello(): string {
-    return this.appService.getHello();
+    return this.appService.hello();
   }
 }
 
@@ -82,8 +82,8 @@ export class SignalController {
     return { message: 'Signal processed', signal };
   }
 
-  @Post('get-signals')
-  async getSignals(
+  @Post('get-user-signal')
+  async getUserSignal(
     @Headers('Authorization') auth: string,
     @Body() signal: Signal,
   ) {

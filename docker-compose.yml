@@ -1,0 +1,26 @@
+services:
+  candles:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: production
+    command: npm run start:prod
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+    ports:
+      - "9191:9191"
+    volumes:
+      - mtagent_data:/usr/app
+    networks:
+      - default
+
+volumes:
+  mtagent_data:
+
+networks:
+  default:
+    driver: bridge
