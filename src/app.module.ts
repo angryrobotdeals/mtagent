@@ -11,6 +11,7 @@ import {
 } from './app.controller';
 import * as dotenv from 'dotenv';
 import { AppService } from './app.service';
+import { generateRandomUUID } from './const';
 
 dotenv.config();
 
@@ -62,39 +63,15 @@ export class AppModule implements OnModuleInit {
   constructor(
     @InjectModel('User') private userModel: Model<User>,
     @InjectModel('Signal') private signalModel: Model<Signal>,
-    private jwtService: JwtService,
   ) {}
 
   async onModuleInit() {
     const existingUser = await this.userModel.findOne({ username: 'admin' });
     if (!existingUser) {
-      const token = this.jwtService.sign(
-        {
-          username: 'admin',
-        },
-        {
-          secret: process.env.JWT_SECRET || 'defaultSecret',
-        },
-      );
+      const token = generateRandomUUID();
       await this.userModel.create({
         username: 'admin',
         token,
-      });
-    }
-
-    const testSignal = await this.signalModel.findOne({
-      signal_id: 'test_001',
-    });
-    if (!testSignal) {
-      await this.signalModel.create({
-        signal_id: 'test_001',
-        client_id: 'CLIENT_001',
-        action: 'open',
-        direction: 'buy',
-        symbol: 'EURUSD',
-        volume: 0.1,
-        stop_loss: 1.1,
-        take_profit: 1.12,
       });
     }
   }

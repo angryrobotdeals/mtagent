@@ -4,12 +4,12 @@ import {
   Delete,
   Get,
   Headers,
+  Param,
   Post,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Response } from 'express';
 import { AppService } from './app.service';
 import { Signal } from './app.interface';
 
@@ -18,7 +18,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/')
-  getHello(): string {
+  async getHello(): Promise<string> {
     return this.appService.hello();
   }
 }
@@ -28,80 +28,146 @@ export class AuthController {
   constructor(private service: AppService) {}
 
   @Post('register')
-  async register(@Body() body: { username: string }) {
-    return {
+  async register(
+    @Headers('Authorization') token: string,
+    @Body() body: { username: string },
+    @Res() res: Response,
+  ) {
+    if (!token?.includes('Bearer ') || !body?.username) {
+      console.error('Unauthorized', token, body);
+      return res.status(401).send('Unauthorized');
+    }
+
+    const registerRes = {
       token: await this.service.registerToken(body.username),
     };
+
+    console.log('Register:', registerRes);
+
+    return res.status(registerRes ? 200 : 401).json(registerRes);
   }
 
   @Post('update-token')
-  async updateToken(@Body() body: { username: string }) {
-    return {
+  async updateToken(
+    @Headers('Authorization') token: string,
+    @Body() body: { username: string },
+    @Res() res: Response,
+  ) {
+    if (!token?.includes('Bearer ') || !body?.username) {
+      console.error('Unauthorized', token, body);
+      return res.status(401).send('Unauthorized');
+    }
+
+    const updateRes = {
       token: await this.service.updateToken(body.username),
     };
+
+    console.log('Update:', updateRes);
+
+    return res.status(updateRes ? 200 : 401).json(updateRes);
   }
 
   @Post('login')
-  async login(@Body() body: { username: string }) {
-    return {
-      token: await this.service.generateToken(body.username),
-    };
+  async login(
+    @Headers('Authorization') token: string,
+    @Body() body: { username: string },
+    @Res() res: Response,
+  ) {
+    if (!token?.includes('Bearer ') || !body?.username) {
+      console.error('Unauthorized', token, body);
+      return res.status(401).send('Unauthorized');
+    }
+
+    const admin = await this.service.getUser('admin');
+    if (!admin) throw new UnauthorizedException('Admin not found');
+    if (admin.token !== token.split('Bearer ')[1])
+      throw new UnauthorizedException(
+        `Invalid token: ${token}, ${admin.token}`,
+      );
+
+    const loginRes = await this.service.login({
+      username: body.username,
+    });
+
+    console.log('Login:', loginRes);
+
+    if (!loginRes) {
+      console.error('Unauthorized', token, body);
+      return res.status(401).send('Unauthorized');
+    }
+
+    return res.status(200).json(loginRes);
   }
 
   @Get('tokens')
-  async getTokens() {
+  async getTokens(@Headers('Authorization') token: string) {
+    if (!token?.includes('Bearer ')) {
+      console.error('Unauthorized', token);
+      return {
+        message: 'Unauthorized',
+      };
+    }
+
     return this.service.getAllTokens();
   }
 
-  @Delete('tokens')
-  async deleteToken(@Body() body: { username: string }) {
-    return this.service.deleteToken(body.username);
+  @Delete('token/:username')
+  async deleteToken(
+    @Headers('Authorization') token: string,
+    @Param('username') username: string,
+  ) {
+    if (!token?.includes('Bearer ') || !username) {
+      console.error('Unauthorized', token, username);
+      return {
+        message: 'Unauthorized',
+      };
+    }
+
+    return this.service.deleteToken(username);
   }
 }
 
 @Controller('signals')
 export class SignalController {
-  constructor(
-    @InjectModel('Signal') private signalModel: Model<Signal>,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private readonly service: AppService) {}
 
-  @Post('process')
-  async processSignal(
-    @Headers('Authorization') auth: string,
+  @Post('create-signal')
+  async createSignal(
+    @Headers('Authorization') token: string,
     @Body() signal: Signal,
   ) {
-    if (!auth || !auth.startsWith('Bearer ')) throw new UnauthorizedException();
-    const token = auth.split(' ')[1];
-    try {
-      this.jwtService.verify(token);
-    } catch {
-      throw new UnauthorizedException();
-    }
-    await this.signalModel.create(signal);
-    return { message: 'Signal processed', signal };
-  }
-
-  @Post('get-user-signal')
-  async getUserSignal(
-    @Headers('Authorization') auth: string,
-    @Body() signal: Signal,
-  ) {
-    if (!auth || !auth.startsWith('Bearer ')) throw new UnauthorizedException();
-    const token = auth.split(' ')[1];
-    try {
-      this.jwtService.verify(token);
-    } catch {
-      throw new UnauthorizedException();
+    if (!token?.includes('Bearer ') || !signal?.client_id) {
+      console.error('Unauthorized', token, signal);
+      return { message: 'Unauthorized' };
     }
 
-    await this.signalModel.find({ username: signal.client_id });
+    const admin = await this.service.getUser('admin');
+    if (!admin) throw new UnauthorizedException('Admin not found');
+    if (admin.token !== token.split('Bearer ')[1])
+      throw new UnauthorizedException(
+        `Invalid token: ${token}, ${admin.token}`,
+      );
 
-    return { message: 'Signals', signal };
+    return this.service.createSignal(signal);
   }
 
-  @Get('all')
+  @Get('get-user-signals')
+  async getUserSignals(@Headers('Authorization') token: string) {
+    if (!token?.includes('Bearer ') || !token.split('Bearer ')?.[1]?.length) {
+      console.error('Unauthorized', token);
+      return { message: 'Unauthorized' };
+    }
+
+    console.log('Get user signals:', token);
+    const user = await this.service.getUserByToken(token.split('Bearer ')[1]);
+    if (!user)
+      throw new UnauthorizedException(`User not found with token: ${token}`);
+
+    return this.service.getSignals(user.username);
+  }
+
+  @Get('get-all-signals')
   async getAllSignals() {
-    return this.signalModel.find();
+    return this.service.getAllSignals();
   }
 }

@@ -4,7 +4,7 @@ export interface User {
 }
 
 export interface Signal {
-  signal_id: string;
+  signal_id?: string;
   client_id: string;
   action: string;
   direction?: string;

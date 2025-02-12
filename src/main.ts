@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(process.env.API_PORT || 9191);
 
-  Logger.log(`🚀 http://localhost:${process.env.API_PORT}\n`, 'Bootstrap');
+  Logger.log(`🚀 http://localhost:${process.env.API_PORT}`, 'Bootstrap');
 }
 
 bootstrap().catch((err) => {
