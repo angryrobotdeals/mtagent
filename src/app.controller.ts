@@ -151,10 +151,15 @@ export class SignalController {
     return this.service.createSignal(signal);
   }
 
+  @Get('')
+  async getSignalsWelcome() {
+    return 'Signals API';
+  }
+
   @Get('get-user-signals')
   async getUserSignals(@Headers('Authorization') token: string) {
     if (!token?.includes('Bearer ') || !token.split('Bearer ')?.[1]?.length) {
-      console.error('Unauthorized', token);
+      console.error('Unauthorized');
       return { message: 'Unauthorized' };
     }
 
