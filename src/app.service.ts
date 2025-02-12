@@ -111,7 +111,7 @@ export class AppService {
       .then((signals) => {
         return signals.filter((s) => {
           const id = new ObjectId(s['_id']);
-          return id.getTimestamp().getTime() > Date.now() - 1000 * 30; // 7 days
+          return id.getTimestamp().getTime() > Date.now() - 1000 * 30;
         });
       })
       .catch((err) => {
