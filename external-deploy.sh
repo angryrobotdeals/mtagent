@@ -26,7 +26,7 @@ git pull
 # Stop containers
 docker compose -p mtagent -f docker-compose.yml down --remove-orphans
 
-docker volume rm mtagent_data
+docker volume rm mtagent_mtagent_data
 docker image rm mtagent
 
 # REMOVE ALL UNUSED DATA

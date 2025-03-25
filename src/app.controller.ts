@@ -127,7 +127,31 @@ export class AuthController {
   }
 }
 
-@Controller('signals')
+@Controller('order')
+export class OrderController {
+  constructor(private service: AppService) {}
+
+  @Post('history')
+  async postHistory(
+    @Headers('Authorization') token: string,
+    @Body() body: { username: string; history: any[] },
+  ) {
+    if (!token?.includes('Bearer ') || !body?.username || !body?.history) {
+      console.error('Unauthorized', token, body);
+      return {
+        message: 'Unauthorized',
+      };
+    }
+
+    const user = await this.service.getUserByToken(token.split('Bearer ')[1]);
+    if (!user)
+      throw new UnauthorizedException(`User not found with token: ${token}`);
+
+    // return this.service.postHistory(user.username, body.history);
+  }
+}
+
+@Controller('signal')
 export class SignalController {
   constructor(private readonly service: AppService) {}
 
