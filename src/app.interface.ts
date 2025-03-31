@@ -42,7 +42,7 @@ export interface History {
   client_id: string;
   time: number;
   dealId: bigint;
-  dealType: DEAL_TYPE;
+  dealType: string;
   symbol?: string;
   volume?: number;
   price?: number;

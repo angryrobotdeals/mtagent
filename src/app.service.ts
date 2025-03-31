@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Signal, User } from './app.interface';
+import { History, Signal, User } from './app.interface';
 import { generateRandomUUID } from './const';
 import { ObjectId } from 'mongodb';
 
@@ -10,6 +10,7 @@ export class AppService {
   constructor(
     @InjectModel('User') private userModel: Model<User>,
     @InjectModel('Signal') private signalModel: Model<Signal>,
+    @InjectModel('History') private historyModel: Model<History>,
   ) {}
 
   async hello(): Promise<string> {
@@ -147,6 +148,40 @@ export class AppService {
       .catch((err) => {
         console.error('Error getting user', err);
         return null;
+      });
+  }
+
+  async saveUserHistory(username: string, history: any[]): Promise<boolean> {
+    // save every element of user history, update if exists
+    const historyPromises = history.map((h) => {
+      const {
+        client_id,
+        time,
+        dealId,
+        dealType,
+        symbol,
+        volume,
+        price,
+        profit,
+        comment,
+      } = h;
+      return this.historyModel
+        .updateOne(
+          { client_id, time, dealId },
+          { $set: { dealType, symbol, volume, price, profit, comment } },
+          { upsert: true },
+        )
+        .catch((err) => {
+          console.error('Error saving user history', err);
+          return null;
+        });
+    });
+    // wait for all promises to finish
+    return await Promise.all(historyPromises)
+      .then(() => true)
+      .catch((err) => {
+        console.error('Error saving user history', err);
+        return false;
       });
   }
 }

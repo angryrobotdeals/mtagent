@@ -142,6 +142,12 @@ export class OrderController {
         message: 'Unauthorized',
       };
     }
+    if (!body?.history?.length) {
+      console.error('Empty history', token, body);
+      return {
+        message: 'Empty history',
+      };
+    }
 
     const user = await this.service.getUserByToken(token.split('Bearer ')[1]);
     if (!user)

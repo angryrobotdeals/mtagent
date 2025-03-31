@@ -54,6 +54,7 @@ const SignalSchema = new Schema({
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Signal', schema: SignalSchema },
+      { name: 'History', schema: SignalSchema },
     ]),
   ],
   controllers: [AppController, AuthController, SignalController],
