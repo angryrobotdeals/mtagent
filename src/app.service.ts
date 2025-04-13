@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { History, Signal, User } from './app.interface';
+import { History, HistoryArray, Signal, User } from './app.interface';
 import { generateRandomUUID } from './const';
 import { ObjectId } from 'mongodb';
 
@@ -151,24 +151,61 @@ export class AppService {
       });
   }
 
-  async saveUserHistory(username: string, history: any[]): Promise<boolean> {
+  async saveUserHistory(
+    client_id: string,
+    history: HistoryArray[],
+  ): Promise<boolean> {
     // save every element of user history, update if exists
     const historyPromises = history.map((h) => {
-      const {
-        client_id,
+      const [
         time,
-        dealId,
-        dealType,
+        deal_ticket,
+        order_ticket,
+        magic,
+        entry,
+        reason,
+        position,
+
+        action,
         symbol,
+        comment,
+        external_deal_id,
+
         volume,
         price,
         profit,
-        comment,
-      } = h;
+        commission,
+        swap,
+        fee,
+        stop_loss,
+        take_profit,
+      ] = h;
       return this.historyModel
         .updateOne(
-          { client_id, time, dealId },
-          { $set: { dealType, symbol, volume, price, profit, comment } },
+          { client_id, time, deal_ticket },
+          {
+            $set: {
+              order_ticket,
+              magic,
+              entry,
+              reason,
+              position,
+
+              action,
+              symbol,
+              comment,
+              external_deal_id,
+
+              volume,
+              price,
+              profit,
+              commission,
+              swap,
+              fee,
+              stop_loss,
+              take_profit,
+            },
+          },
           { upsert: true },
         )
         .catch((err) => {
@@ -176,6 +213,7 @@ export class AppService {
           return null;
         });
     });
+
     // wait for all promises to finish
     return await Promise.all(historyPromises)
       .then(() => true)

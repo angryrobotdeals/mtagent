@@ -3,10 +3,11 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { InjectModel, MongooseModule } from '@nestjs/mongoose';
 import { Model, Schema } from 'mongoose';
-import { Signal, User } from './app.interface';
+import { History, Signal, User } from './app.interface';
 import {
   AppController,
   AuthController,
+  OrderController,
   SignalController,
 } from './app.controller';
 import * as dotenv from 'dotenv';
@@ -34,6 +35,33 @@ const SignalSchema = new Schema({
   multi_take_profits: Array,
 });
 
+// https://www.mql5.com/en/docs/constants/tradingconstants/dealproperties#enum_deal_property_integer
+const HistorySchema: Schema<History> = new Schema({
+  client_id: String,
+
+  time: Number,
+  order_ticket: Number,
+  deal_ticket: Number,
+  magic: Number,
+  entry: Number,
+  reason: Number,
+  position: Number,
+
+  action: String,
+  symbol: String,
+  comment: String,
+  external_deal_id: String,
+
+  volume: Number,
+  price: Number,
+  profit: Number,
+  commission: Number,
+  swap: Number,
+  fee: Number,
+  stop_loss: Number,
+  take_profit: Number,
+});
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -54,16 +82,22 @@ const SignalSchema = new Schema({
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Signal', schema: SignalSchema },
-      { name: 'History', schema: SignalSchema },
+      { name: 'History', schema: HistorySchema },
     ]),
   ],
-  controllers: [AppController, AuthController, SignalController],
+  controllers: [
+    AppController,
+    AuthController,
+    SignalController,
+    OrderController,
+  ],
   providers: [JwtService, AppService],
 })
 export class AppModule implements OnModuleInit {
   constructor(
     @InjectModel('User') private userModel: Model<User>,
     @InjectModel('Signal') private signalModel: Model<Signal>,
+    @InjectModel('Signal') private historyModel: Model<History>,
   ) {}
 
   async onModuleInit() {

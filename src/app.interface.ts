@@ -38,14 +38,52 @@ export enum DEAL_TYPE {
   OTHER = 9999, // Другое
 }
 
+export type HistoryArray = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+
+  string,
+  string,
+  string,
+  string,
+
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+];
+
 export interface History {
   client_id: string;
+
   time: number;
-  dealId: bigint;
-  dealType: string;
-  symbol?: string;
-  volume?: number;
-  price?: number;
-  profit?: number;
+  deal_ticket: number;
+  order_ticket: number;
+  magic: number;
+  entry: number;
+  reason: number;
+  position: number;
+
+  action: string;
+  symbol: string;
   comment: string;
+  external_deal_id: string;
+
+  volume: number;
+  price: number;
+  profit: number;
+  commission: number;
+  swap: number;
+  fee: number;
+  stop_loss: number;
+  take_profit: number;
 }

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AppService } from './app.service';
-import { Signal } from './app.interface';
+import { HistoryArray, Signal } from './app.interface';
 
 @Controller('')
 export class AppController {
@@ -134,7 +134,7 @@ export class OrderController {
   @Post('history')
   async postHistory(
     @Headers('Authorization') token: string,
-    @Body() body: { username: string; history: any[] },
+    @Body() body: { username: string; history: HistoryArray[] },
   ) {
     console.log('Post history:', token, body);
 
@@ -144,6 +144,12 @@ export class OrderController {
         message: 'Unauthorized',
       };
     }
+
+    const user = await this.service.getUser(body.username);
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.token !== token.split('Bearer ')[1])
+      throw new UnauthorizedException(`Invalid token`);
+
     if (!body?.history?.length) {
       console.error('Empty history', token, body);
       return {
@@ -151,11 +157,7 @@ export class OrderController {
       };
     }
 
-    const user = await this.service.getUserByToken(token.split('Bearer ')[1]);
-    if (!user)
-      throw new UnauthorizedException(`User not found with token: ${token}`);
-
-    // return this.service.postHistory(user.username, body.history);
+    return this.service.saveUserHistory(user.username, body.history);
   }
 }
 
