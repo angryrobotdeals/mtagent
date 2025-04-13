@@ -136,6 +136,8 @@ export class OrderController {
     @Headers('Authorization') token: string,
     @Body() body: { username: string; history: any[] },
   ) {
+    console.log('Post history:', token, body);
+
     if (!token?.includes('Bearer ') || !body?.username || !body?.history) {
       console.error('Unauthorized', token, body);
       return {
